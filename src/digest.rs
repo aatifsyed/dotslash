@@ -9,6 +9,7 @@
 
 use std::fmt;
 
+use schemars::JsonSchema;
 use serde::Deserialize;
 use serde::Serialize;
 use thiserror::Error;
@@ -22,7 +23,7 @@ pub enum DigestError {
     InvalidHashLength(String),
 }
 
-#[derive(Debug, Deserialize, Serialize, PartialEq, Eq, Clone)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq, Clone, JsonSchema)]
 #[serde(try_from = "String")]
 pub struct Digest(String);
 

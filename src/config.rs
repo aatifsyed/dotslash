@@ -7,9 +7,13 @@
  * of this source tree.
  */
 
+use std::borrow::Cow;
 use std::collections::HashMap;
 
 use anyhow::Context as _;
+use schemars::gen::SchemaGenerator;
+use schemars::schema::Schema;
+use schemars::JsonSchema;
 use serde::Deserialize;
 use serde::Serialize;
 use serde_jsonrc::value::Value;
@@ -24,7 +28,7 @@ use crate::fetch_method::ArtifactFormat;
 /// all of the DotSlash files in the repo.
 pub const REQUIRED_HEADER: &str = "#!/usr/bin/env dotslash";
 
-#[derive(Deserialize, Debug, PartialEq)]
+#[derive(Deserialize, Debug, PartialEq, JsonSchema)]
 pub struct ConfigFile {
     pub name: String,
     pub platforms: HashMap<String, ArtifactEntry>,
@@ -43,6 +47,32 @@ pub struct ArtifactEntry<Format = ArtifactFormat> {
     pub readonly: bool,
 }
 
+impl JsonSchema for ArtifactEntry {
+    fn schema_name() -> String {
+        String::from("ArtifactEntry")
+    }
+    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+        #[derive(JsonSchema)]
+        #[allow(dead_code)]
+        pub struct _ArtifactEntry {
+            pub size: u64,
+            pub hash: HashAlgorithm,
+            pub digest: Digest,
+            #[serde(default)]
+            pub format: ArtifactFormat,
+            pub path: ArtifactPath,
+            #[schemars(with = "Vec<serde_json::Value>")]
+            pub providers: Vec<Value>,
+            #[serde(default = "readonly_default_as_true", skip_serializing_if = "is_true")]
+            pub readonly: bool,
+        }
+        _ArtifactEntry::json_schema(gen)
+    }
+    fn schema_id() -> Cow<'static, str> {
+        Cow::Borrowed(std::concat!(std::module_path!(), "::", "ArtifactEntry"))
+    }
+}
+
 /// While having a boolean that defaults to `true` is somewhat undesirable,
 /// the alternative would be to name the field "writable", which is too easy
 /// to misspell as "writeable" (which would be ignored), so "readonly" it is.
@@ -55,7 +85,7 @@ fn is_true(b: &bool) -> bool {
     *b
 }
 
-#[derive(Deserialize, Serialize, Debug, PartialEq, Eq)]
+#[derive(Deserialize, Serialize, Debug, PartialEq, Eq, JsonSchema)]
 pub enum HashAlgorithm {
     #[serde(rename = "blake3")]
     Blake3,
@@ -87,6 +117,13 @@ mod tests {
     use super::*;
     use crate::config::ArtifactPath;
     use crate::fetch_method::ArtifactFormat;
+
+    #[test]
+    fn json_schema() {
+        let schema = schemars::schema_for!(ConfigFile);
+        let expected = serde_json::to_string_pretty(&schema).unwrap();
+        expect_test::expect_file!["schema.json"].assert_eq(&expected);
+    }
 
     fn parse_file_string(json: &str) -> anyhow::Result<ConfigFile> {
         Ok(parse_file(json)?.1)

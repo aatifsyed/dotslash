@@ -12,6 +12,7 @@ use std::path::Component;
 use std::path::Path;
 use std::str::FromStr;
 
+use schemars::JsonSchema;
 use serde::Deserialize;
 use serde::Serialize;
 use thiserror::Error;
@@ -19,7 +20,7 @@ use thiserror::Error;
 /// `ArtifactPath` is a newtype type for `String` rather than `PathBuf` because
 /// we want it to be unambiguously represented with forward slashes on all
 /// platforms.
-#[derive(Debug, Deserialize, Serialize, PartialEq, Eq, Clone)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq, Clone, JsonSchema)]
 #[serde(try_from = "String")]
 pub struct ArtifactPath(String);
 

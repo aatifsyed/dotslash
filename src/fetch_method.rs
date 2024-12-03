@@ -7,10 +7,11 @@
  * of this source tree.
  */
 
+use schemars::JsonSchema;
 use serde::Deserialize;
 use serde::Serialize;
 
-#[derive(Copy, Clone, Default, Deserialize, Serialize, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Default, Deserialize, Serialize, Debug, PartialEq, Eq, JsonSchema)]
 pub enum ArtifactFormat {
     /// Artifact is a single file with no compression applied.
     #[default]

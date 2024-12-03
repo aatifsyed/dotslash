@@ -1,0 +1,85 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ConfigFile",
+  "type": "object",
+  "required": [
+    "name",
+    "platforms"
+  ],
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "platforms": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/ArtifactEntry"
+      }
+    }
+  },
+  "definitions": {
+    "ArtifactEntry": {
+      "type": "object",
+      "required": [
+        "digest",
+        "hash",
+        "path",
+        "providers",
+        "size"
+      ],
+      "properties": {
+        "digest": {
+          "$ref": "#/definitions/Digest"
+        },
+        "format": {
+          "$ref": "#/definitions/ArtifactFormat"
+        },
+        "hash": {
+          "$ref": "#/definitions/HashAlgorithm"
+        },
+        "path": {
+          "$ref": "#/definitions/ArtifactPath"
+        },
+        "providers": {
+          "type": "array",
+          "items": true
+        },
+        "readonly": {
+          "type": "boolean"
+        },
+        "size": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        }
+      }
+    },
+    "ArtifactFormat": {
+      "type": "string",
+      "enum": [
+        "gz",
+        "tar",
+        "tar.gz",
+        "tar.zst",
+        "tar.xz",
+        "xz",
+        "zst",
+        "zip"
+      ]
+    },
+    "ArtifactPath": {
+      "description": "`ArtifactPath` is a newtype type for `String` rather than `PathBuf` because we want it to be unambiguously represented with forward slashes on all platforms.",
+      "type": "string"
+    },
+    "Digest": {
+      "type": "string"
+    },
+    "HashAlgorithm": {
+      "type": "string",
+      "enum": [
+        "blake3",
+        "sha256"
+      ]
+    }
+  }
+}
